@@ -414,6 +414,38 @@ private func generateDrawSteps(
       generateDrawSteps(steps: steps, context: context, bytecode: &bytecode)
     case .fillColorSpace, .strokeColorSpace:
       fatalError("Not implemented")
+    case let .moveTo(to):
+      encode(.moveTo, DrawCommand.MoveToArgs.self, to, >>)
+    case let .curveTo(c1, c2, end):
+      encode(
+        .curveTo,
+        DrawCommand.CurveToArgs.self,
+        BCCubicCurve(control1: c1, control2: c2, to: end), >>
+      )
+    case let .lineTo(to):
+      encode(.lineTo, DrawCommand.LineToArgs.self, to, >>)
+    case let .appendRectangle(rect):
+      encode(.appendRectangle, DrawCommand.AppendRectangleArgs.self, rect, >>)
+    case let .appendRoundedRect(rect, rx, ry):
+      encode(
+        .appendRoundedRect,
+        DrawCommand.AppendRoundedRectArgs.self,
+        (rect, rx: rx, ry: ry), >>
+      )
+    case let .addArc(center, radius, startAngle, endAngle, clockwise):
+      encode(
+        .addArc,
+        DrawCommand.AddArcArgs.self,
+        (center, radius, startAngle, endAngle, clockwise), >>
+      )
+    case .closePath:
+      encode(.closePath, DrawCommand.ClosePathArgs.self, (), >>)
+    case .endPath:
+      break
+    case let .lines(lines):
+      encode(.lines, DrawCommand.LinesArgs.self, lines, >>)
+    case let .addEllipse(rect):
+      encode(.addEllipse, DrawCommand.AddEllipseArgs.self, rect, >>)
     }
   }
 }
@@ -507,7 +539,11 @@ struct BCCGGenerator: CoreGraphicsGenerator {
     """
   }
 
-  func generateImageFunction(image: Image) -> String {
+  func generateImageFunctions(images: [Image]) throws -> String {
+    images.map { generateImageFunction(image: $0) }.joined(separator: "\n\n")
+  }
+
+  private func generateImageFunction(image: Image) -> String {
     let bytecodeName = "\(image.name.lowerCamelCase)Bytecode"
     let bytecode = generateRouteBytecode(route: image.route)
     return """

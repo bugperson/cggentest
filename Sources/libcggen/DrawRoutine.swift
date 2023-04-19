@@ -48,9 +48,24 @@ enum DrawStep {
   case saveGState
   case restoreGState
 
+  case moveTo(CGPoint)
+  case curveTo(CGPoint, CGPoint, CGPoint)
+  case lineTo(CGPoint)
+  case appendRectangle(CGRect)
+  case appendRoundedRect(CGRect, rx: CGFloat, ry: CGFloat)
+  case addArc(
+    center: CGPoint,
+    radius: CGFloat,
+    startAngle: CGFloat,
+    endAngle: CGFloat,
+    clockwise: Bool
+  )
+  case closePath
+  case endPath
   case pathSegment(PathSegment)
   case replacePathWithStrokePath
 
+  case lines([CGPoint])
   case clip
   case clipWithRule(CGPathFillRule)
   case clipToRect(CGRect)
@@ -63,6 +78,7 @@ enum DrawStep {
   case fillEllipse(in: CGRect)
   case stroke
   case drawPath(mode: CGPathDrawingMode)
+  case addEllipse(in: CGRect)
   case fillAndStroke
 
   case concatCTM(CGAffineTransform)
